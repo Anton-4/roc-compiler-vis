@@ -17,7 +17,7 @@ permissions:
 
 # Configure GitHub Pages
 jobs:
-    run-tests:
+    prep-and-publish-graph:
         runs-on: [ubuntu-24.04]
         steps:
             - uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
             - name: collect import data
               run: |
                   cd roc/src
-                  rg  -g '*.zig' @import ./ | rg -v "\"std\"" > ../../import_data.txt
+                  rg  -g '*.zig' @import ./ | rg -v "\"std\"" | sed 's|^\./||' | sort > ../../import_data.txt
 
             - name: print import data
               run: |
