@@ -54,6 +54,11 @@ jobs:
             - name: generate import graph
               run: |
                     python3 import_graph_gen_script.py
+
+            - name: set up folder for github pages
+              run: |
+                  mkdir public
+                  mv zig_dependency_graph.png ./public
             
             - name: Setup Pages
               uses: actions/configure-pages@v4
@@ -61,7 +66,7 @@ jobs:
             - name: Upload artifact
               uses: actions/upload-pages-artifact@v3
               with:
-                  path: './zig_dependency_graph.png'
+                  path: './public'
                     
             - name: Deploy to GitHub Pages
               id: deployment
