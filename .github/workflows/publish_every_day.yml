@@ -1,0 +1,50 @@
+on: 
+    pull_request:
+    workflow_dispatch:
+    schedule:
+        - cron: "0 10 * * *" # Every day at 10:00 UTC
+
+# this cancels workflows currently in progress if you start a new one
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+# Add permissions needed for GitHub Pages
+permissions:
+    contents: read
+    pages: write
+    id-token: write
+
+# Configure GitHub Pages
+jobs:
+    run-tests:
+        runs-on: [ubuntu-24.04]
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: clone roc
+              run: |
+                    git clone --depth 1 https://github.com/roc-lang/roc.git
+
+            - name: collect import data
+              run: |
+                    cd roc
+                    rg  -g '*.zig' @import | rg -v "\"std\"" > ../import_data.txt
+
+            - name: generate import graph
+              run: |
+                    python3 import_graph_gen_script.py
+            
+            - name: Setup Pages
+              uses: actions/configure-pages@v4
+
+            - name: Upload artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: './zig_dependency_graph.png'
+                    
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
+
+     
