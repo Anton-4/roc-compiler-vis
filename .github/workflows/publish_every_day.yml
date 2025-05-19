@@ -33,7 +33,8 @@ jobs:
 
             - name: collect import data
               run: |
-                    rg import
+                    rg -h
+                    #rg import
                     #cd roc/src && rg import
                     #rg  -g '*.zig' "@import"
                     #rg  -g '*.zig' @import | rg -v "\"std\"" > ../../import_data.txt
