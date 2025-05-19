@@ -1,6 +1,7 @@
 import os
 import re
 import random
+import hashlib
 from graphviz import Digraph
 
 # Define a list of visually distinct colors for edges
@@ -53,12 +54,43 @@ def normalize_path(base_path, import_path):
         base_dir = os.path.dirname(base_path)
         return os.path.normpath(os.path.join(base_dir, import_path))
     else:
-        # For non-relative imports, treat as is (relative to project root)
-        return import_path
+        # For non-relative imports that don't start with a path separator,
+        # treat them as relative to the directory of the importing file
+        base_dir = os.path.dirname(base_path)
+        # Check if the import path already starts with the base directory's path
+        if import_path.startswith(base_dir + "/"):
+            return import_path
+        else:
+            return os.path.normpath(os.path.join(base_dir, import_path))
 
 def safe_label(path):
     """Create a safe node ID for Graphviz"""
     return path.replace('/', '_')
+
+def get_directory_color(path):
+    """
+    Deterministically determine a color for the node based on its first directory.
+    Uses colors from the beginning of EDGE_COLORS list.
+    If the file is at the root level (no directory), use black.
+    """
+    # Check if path has a directory component
+    if '/' in path:
+        # Extract the first directory from the path
+        first_dir = path.split('/')[0]
+        
+        # Keep track of directories we've seen to assign sequential colors
+        if not hasattr(get_directory_color, 'dir_colors'):
+            get_directory_color.dir_colors = {}
+        
+        # If we haven't seen this directory before, assign it the next color
+        if first_dir not in get_directory_color.dir_colors:
+            color_index = len(get_directory_color.dir_colors) % len(EDGE_COLORS)
+            get_directory_color.dir_colors[first_dir] = EDGE_COLORS[color_index]
+        
+        return get_directory_color.dir_colors[first_dir]
+    else:
+        # Root level files get black
+        return "#000000"
 
 # Read import data from file
 try:
@@ -79,43 +111,40 @@ for line in import_data.strip().splitlines():
         imp_path = re.search(r'@import\("([^"\\)]+)"\)', line).group(1)
         imports.append((source, imp_path))
 
-# Build a mapping from original paths to their normalized forms
-path_mapping = {}
+# Build a graph structure with normalized paths
+graph = {}
+normalized_imports = []
 for source, import_path in imports:
     # Normalize the import path
     normalized_import = normalize_path(source, import_path)
-    path_mapping[import_path] = normalized_import
     
-    # Make sure source path is in the mapping too
-    if source not in path_mapping:
-        path_mapping[source] = source
+    # Store the normalized relationship
+    normalized_imports.append((source, normalized_import))
+    
+    # Add to graph structure
+    if source not in graph:
+        graph[source] = []
+    graph[source].append(normalized_import)
+    
+    # Make sure target is in the graph too
+    if normalized_import not in graph:
+        graph[normalized_import] = []
 
 # Initialize Graphviz Digraph
 dot = Digraph(comment='Zig Dependency Graph', format='png')
+dot.attr('node', style='filled', fillcolor='white', color='black', penwidth='3.0')
 
-# Add nodes using normalized paths
-unique_nodes = set()
-for src, tgt in imports:
-    norm_src = path_mapping[src]
-    norm_tgt = path_mapping[tgt]
-    
-    unique_nodes.add(norm_src)
-    unique_nodes.add(norm_tgt)
-
-for node in unique_nodes:
-    # Find all original paths that map to this normalized path
-    original_paths = [p for p, np in path_mapping.items() if np == node]
-    # Use the shortest original path as label for better readability
-    label = min(original_paths, key=len) if original_paths else node
-    dot.node(safe_label(node), label)
+# Add nodes for all unique files in the graph with colors based on first directory
+for node in graph.keys():
+    color = get_directory_color(node)
+    # Only color the circle around the node, don't fill it
+    dot.node(safe_label(node), node, color=color, style='solid')
 
 # Add edges using normalized paths with random colors
-for src, tgt in imports:
-    norm_src = path_mapping[src]
-    norm_tgt = path_mapping[tgt]
+for src, normalized_tgt in normalized_imports:
     # Randomly select a color for each edge
     color = random.choice(EDGE_COLORS)
-    dot.edge(safe_label(norm_src), safe_label(norm_tgt), color=color)
+    dot.edge(safe_label(normalized_tgt), safe_label(src), color=color)
 
 # Render to file
 output_path = dot.render('zig_dependency_graph')
