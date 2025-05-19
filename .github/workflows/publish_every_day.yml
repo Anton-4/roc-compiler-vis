@@ -34,8 +34,7 @@ jobs:
             - name: collect import data
               run: |
                     cd roc/src
-                    ls
-                    #rg  -g '*.zig' @import
+                    rg  -g '*.zig' "@import"
                     #rg  -g '*.zig' @import | rg -v "\"std\"" > ../../import_data.txt
 
             - name: generate import graph
