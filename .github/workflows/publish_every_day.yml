@@ -51,6 +51,10 @@ jobs:
                   cd roc/src
                   rg  -g '*.zig' @import ./ | rg -v "\"std\"" > ../../import_data.txt
 
+            - name: print import data
+              run: |
+                  cat import_data.txt
+
             - name: generate import graph
               run: |
                     python3 import_graph_gen_script.py
