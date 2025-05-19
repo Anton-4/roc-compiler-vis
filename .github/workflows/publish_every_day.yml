@@ -49,7 +49,7 @@ jobs:
             - name: collect import data
               run: |
                   cd roc/src
-                  rg  -g '*.zig' @import ./ | rg -v "\"std\"" ./ > ../../import_data.txt
+                  rg  -g '*.zig' @import ./ | rg -v "\"std\"" > ../../import_data.txt
 
             - name: generate import graph
               run: |
