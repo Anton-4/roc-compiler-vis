@@ -1,0 +1,73 @@
+on: 
+    workflow_dispatch:
+    schedule:
+        - cron: "0 10 * * *" # Every day at 10:00 UTC
+
+# this cancels workflows currently in progress if you start a new one
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+# Add permissions needed for GitHub Pages
+permissions:
+    contents: read
+    pages: write
+    id-token: write
+
+# Configure GitHub Pages
+jobs:
+    prep-and-publish-graph:
+        runs-on: [ubuntu-24.04]
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Install ripgrep
+              run: |
+                sudo apt-get update
+                sudo apt-get install -y ripgrep
+
+            - run: python3 --version
+
+            - name: Install graphviz system dependencies
+              run: |
+                sudo apt-get update
+                sudo apt-get install -y graphviz graphviz-dev
+
+            - name: Install Python dependencies
+              run: |
+                python3 -m pip install --upgrade pip
+                pip install graphviz
+
+            - name: clone roc
+              run: |
+                    git clone --depth 1 https://github.com/roc-lang/roc.git
+
+            - name: collect import data
+              run: |
+                  cd roc/src
+                  rg  -g '*.zig' @import ./ | rg -v "\"std\"" | sed 's|^\./||' | sort > ../../import_data.txt
+
+            - name: print import data
+              run: |
+                  cat import_data.txt
+
+            - name: generate import graph
+              run: |
+                    python3 import_graph_gen_script.py
+
+            - name: set up folder for github pages
+              run: |
+                  mkdir public
+                  mv zig_dependency_graph.png ./public
+            
+            - name: Setup Pages
+              uses: actions/configure-pages@v4
+
+            - name: Upload artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: './public'
+                    
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
