@@ -33,11 +33,7 @@ jobs:
 
             - name: collect import data
               run: |
-                    cat import_graph_gen_script.py | rg import
-                    #rg import
-                    #cd roc/src && rg import
-                    #rg  -g '*.zig' "@import"
-                    #rg  -g '*.zig' @import | rg -v "\"std\"" > ../../import_data.txt
+                    rg  -g '*.zig' @import ./ | rg -v "\"std\"" ./ > ../../import_data.txt
 
             - name: generate import graph
               run: |
