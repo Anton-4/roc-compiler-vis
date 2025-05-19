@@ -60,21 +60,6 @@ jobs:
               run: |
                   mkdir public
                   mv zig_dependency_graph.png ./public
-
-            - name: Upload Zig dependency graph
-              uses: actions/upload-artifact@v4
-              with:
-                  name: zig-dependency-graph
-                  path: zig_dependency_graph
-                  retention-days: 5  # How long to keep the artifact (default is 90 days)
-
-            - name: Upload Zig dependency graph png
-              uses: actions/upload-artifact@v4
-              with:
-                  name: zig-dependency-graph-png
-                  path: zig_dependency_graph.png
-                  retention-days: 5  # How long to keep the artifact (default is 90 days)
-
             
             - name: Setup Pages
               uses: actions/configure-pages@v4
