@@ -22,6 +22,11 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
+            - name: Install ripgrep
+              run: |
+                sudo apt-get update
+                sudo apt-get install -y ripgrep
+
             - name: clone roc
               run: |
                     git clone --depth 1 https://github.com/roc-lang/roc.git
