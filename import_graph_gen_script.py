@@ -111,20 +111,28 @@ for line in import_data.strip().splitlines():
         imp_path = re.search(r'@import\("([^"\\)]+)"\)', line).group(1)
         imports.append((source, imp_path))
 
-# Build a graph structure with normalized paths
+# Build a graph structure with normalized paths and track unique edges
 graph = {}
 normalized_imports = []
+unique_edges = set()  # Track unique edges to avoid duplicates
+
 for source, import_path in imports:
     # Normalize the import path
     normalized_import = normalize_path(source, import_path)
     
-    # Store the normalized relationship
-    normalized_imports.append((source, normalized_import))
+    # Create edge tuple (from, to) for uniqueness check
+    edge = (normalized_import, source)
+    
+    # Only add if this edge doesn't already exist
+    if edge not in unique_edges:
+        unique_edges.add(edge)
+        normalized_imports.append((source, normalized_import))
     
     # Add to graph structure
     if source not in graph:
         graph[source] = []
-    graph[source].append(normalized_import)
+    if normalized_import not in graph[source]:
+        graph[source].append(normalized_import)
     
     # Make sure target is in the graph too
     if normalized_import not in graph:
@@ -149,3 +157,5 @@ for src, normalized_tgt in normalized_imports:
 # Render to file
 output_path = dot.render('zig_dependency_graph')
 print(f"Dependency graph written to: {output_path}")
+print(f"Total unique edges: {len(normalized_imports)}")
+print(f"Total nodes: {len(graph)}")
