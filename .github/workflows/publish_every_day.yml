@@ -58,7 +58,7 @@ jobs:
             - name: convert png to webp
               run: |
                 sudo apt-get install -y webp imagemagick
-                convert zig_dependency_graph.png -resize 16000x16000\> zig_dependency_graph_resized.png
+                convert -limit memory 0 -limit map 0 -limit disk 0 -limit width 0 -limit height 0 zig_dependency_graph.png -resize 16000x16000\> zig_dependency_graph_resized.png
                 cwebp -q 85 zig_dependency_graph_resized.png -o zig_dependency_graph.webp
 
             - name: set up folder for github pages
