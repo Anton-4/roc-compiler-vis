@@ -57,8 +57,8 @@ jobs:
 
             - name: convert png to webp
               run: |
-                sudo apt-get install -y webp vips
-                vips resize zig_dependency_graph.png zig_dependency_graph_resized.png 16000
+                sudo apt-get install -y webp libvips-tools
+                vips thumbnail input.jpg output.jpg 16000x16000 --size both
                 cwebp -q 85 zig_dependency_graph_resized.png -o zig_dependency_graph.webp
 
             - name: set up folder for github pages
