@@ -139,7 +139,7 @@ for source, import_path in imports:
         graph[normalized_import] = []
 
 # Initialize Graphviz Digraph
-dot = Digraph(comment='Zig Dependency Graph', format='png')
+dot = Digraph(comment='Zig Dependency Graph', format='svg')
 dot.attr('node', style='filled', fillcolor='white', color='black', penwidth='3.0')
 
 # Add nodes for all unique files in the graph with colors based on first directory
