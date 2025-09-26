@@ -55,16 +55,10 @@ jobs:
               run: |
                     python3 import_graph_gen_script.py
 
-            - name: convert png to webp
-              run: |
-                sudo apt-get install -y webp libvips-tools
-                vips thumbnail zig_dependency_graph.png zig_dependency_graph_resized.png 16000x16000 --size both
-                cwebp -q 85 zig_dependency_graph_resized.png -o zig_dependency_graph.webp
-
             - name: set up folder for github pages
               run: |
                   mkdir public
-                  mv zig_dependency_graph.webp ./public
+                  mv zig_dependency_graph.svg ./public
             
             - name: Setup Pages
               uses: actions/configure-pages@v4
