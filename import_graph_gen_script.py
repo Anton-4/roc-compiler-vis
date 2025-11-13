@@ -108,9 +108,24 @@ imports = []
 for line in import_data.strip().splitlines():
     if '@import' in line:
         source = line.split(':', 1)[0]
+
+        # Skip test-related imports
+        if 'test' in source.lower() or '/test/' in source.lower():
+            continue
+
+        # Skip lines that are clearly not actual imports (e.g., string definitions, comments)
+        # These often contain patterns like 'const pattern =' or are part of string literals
+        if 'const pattern' in line or '= "' in line.split('@import')[0]:
+            continue
+
         match = re.search(r'@import\("([^"\\)]+)"\)', line)
         if match:
             imp_path = match.group(1)
+
+            # Skip testing-related imports
+            if 'testing' in imp_path.lower():
+                continue
+
             imports.append((source, imp_path))
         else:
             print(f"Error: Failed to parse @import pattern in line: {line}")
