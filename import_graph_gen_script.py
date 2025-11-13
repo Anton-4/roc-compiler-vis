@@ -108,8 +108,13 @@ imports = []
 for line in import_data.strip().splitlines():
     if '@import' in line:
         source = line.split(':', 1)[0]
-        imp_path = re.search(r'@import\("([^"\\)]+)"\)', line).group(1)
-        imports.append((source, imp_path))
+        match = re.search(r'@import\("([^"\\)]+)"\)', line)
+        if match:
+            imp_path = match.group(1)
+            imports.append((source, imp_path))
+        else:
+            print(f"Error: Failed to parse @import pattern in line: {line}")
+            exit(1)
 
 # Build a graph structure with normalized paths and track unique edges
 graph = {}
